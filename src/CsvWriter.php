@@ -89,7 +89,12 @@ class CsvWriter
 
     public function setHeader(array $header): void
     {
-        $this->header = $header;
+        // Support array of arrays with 'header_name'
+        if (!empty($header) && is_array($header[0]) && isset($header[0]['header_name'])) {
+            $this->header = array_column($header, 'header_name');
+        } else {
+            $this->header = $header;
+        }
     }
 
     /**
@@ -111,7 +116,16 @@ class CsvWriter
      */
     public function writeRow(array $row): void
     {
-        fputcsv($this->handle, $row, $this->delimiter, $this->enclosure, $this->escape);
+        if (!empty($this->header) && array_keys($row) !== range(0, count($row) - 1)) {
+            // Map associative array to header order
+            $orderedRow = [];
+            foreach ($this->header as $col) {
+                $orderedRow[] = $row[$col] ?? '';
+            }
+            fputcsv($this->handle, $orderedRow, $this->delimiter, $this->enclosure, $this->escape);
+        } else {
+            fputcsv($this->handle, $row, $this->delimiter, $this->enclosure, $this->escape);
+        }
     }
 
     /**
@@ -122,6 +136,41 @@ class CsvWriter
     public function writeRows(array $rows): void
     {
         foreach ($rows as $row) {
+            $this->writeRow($row);
+        }
+    }
+
+    /**
+     * Add rows from a column-oriented array (header => [values]).
+     *
+     * @param array $columns
+     * @throws \InvalidArgumentException
+     */
+    public function addRowsFromColumns(array $columns): void
+    {
+        if (empty($columns)) {
+            return;
+        }
+
+        // Ensure all columns have the same number of rows
+        $rowCount = null;
+        foreach ($columns as $col => $values) {
+            if (!is_array($values)) {
+                throw new \InvalidArgumentException("Column '$col' must be an array.");
+            }
+            if ($rowCount === null) {
+                $rowCount = count($values);
+            } elseif (count($values) !== $rowCount) {
+                throw new \InvalidArgumentException("All columns must have the same number of rows.");
+            }
+        }
+
+        // Build row-oriented arrays and write them
+        for ($i = 0; $i < $rowCount; $i++) {
+            $row = [];
+            foreach ($columns as $col => $values) {
+                $row[$col] = $values[$i];
+            }
             $this->writeRow($row);
         }
     }

@@ -129,3 +129,60 @@ it('writes a CSV with multiple columns and multiple rows', function () {
     expect($csv)->toContain("2,Bob,bob@example.com,25");
     expect($csv)->toContain("3,Charlie,charlie@example.com,35");
 });
+
+it('writes rows from column-oriented arrays using addRowsFromColumns', function () {
+    $writer = new CsvWriter($this->file . 'columns.csv', [
+        'has_header' => true,
+    ]);
+    $writer->setHeader(['first name', 'last name']);
+    $writer->writeHeader();
+
+    $columns = [
+        'first name' => ['Bob', 'Alice', 'Dave'],
+        'last name'  => ['Duval', 'Caminos', 'Philips'],
+    ];
+    $writer->addRowsFromColumns($columns);
+    $writer->close();
+
+    $csv = file_get_contents($this->file . 'columns.csv');
+
+    expect($csv)->toContain("\xEF\xBB\xBF\"first name\",\"last name\"");
+    expect($csv)->toContain("Bob,Duval");
+    expect($csv)->toContain("Alice,Caminos");
+    expect($csv)->toContain("Dave,Philips");
+});
+
+it('throws an exception if columns have different number of rows in addRowsFromColumns', function () {
+    $writer = new CsvWriter($this->file . 'invalid_columns.csv', [
+        'has_header' => true,
+    ]);
+    $writer->setHeader(['a', 'b']);
+    $writer->writeHeader();
+
+    $columns = [
+        'a' => [1, 2],
+        'b' => [3],
+    ];
+
+    expect(fn () => $writer->addRowsFromColumns($columns))
+        ->toThrow(\InvalidArgumentException::class, 'All columns must have the same number of rows.');
+});
+
+it('does nothing if addRowsFromColumns is called with an empty array', function () {
+    $writer = new CsvWriter($this->file . 'empty_columns.csv', [
+        'has_header' => true,
+    ]);
+    $writer->setHeader(['foo', 'bar']);
+    $writer->writeHeader();
+
+    $writer->addRowsFromColumns([]);
+    $writer->close();
+
+    $csv = file_get_contents($this->file . 'empty_columns.csv');
+
+    // Only header should be present
+    expect($csv)->toContain("foo,bar");
+    // No data rows
+    $lines = array_filter(explode("\n", trim($csv)));
+    expect(count($lines))->toBe(1);
+});

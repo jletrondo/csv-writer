@@ -5,7 +5,14 @@ require 'vendor/autoload.php';
 use Jletrondo\CsvWriter\CsvWriter;
 
 $writer = new CsvWriter('tests/output/output.csv');
-$writer->setHeader(['Name', 'Email']);
+$writer->setHeader(['first name', 'last name']);
 $writer->writeHeader();
-$writer->writeRow(['John Doe', 'john@example.com']);
-$writer->close();
+
+$header_rows = [
+    'first name' => ['Jason', 'Alice', 'Dave'],
+    'last name'  => ['Duval', 'Caminos', 'Philips']
+];
+$writer->addRowsFromColumns($header_rows);
+
+$csv = $writer->close();
+echo $csv;
