@@ -1,0 +1,36 @@
+{
+    "name": "jletrondo/csv-writer",
+    "description": "A simple CSV writer library for PHP.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Jletrondo\\CsvWriter\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "jesrel",
+            "email": "jletrondo@geniihut.com"
+        }
+    ],
+    "autoload-dev": {
+        "psr-4": {
+        "Tests\\": "tests/"
+        }
+    },
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "pestphp/pest": "^3.8"
+    },
+    "config": {
+        "allow-plugins": {
+        "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "test": "@php vendor/bin/pest"
+    }
+}
