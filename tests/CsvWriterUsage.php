@@ -8,11 +8,17 @@ try {
     $writer->setHeader(['first name', 'last name']);
     $writer->writeHeader();
 
-    $header_rows = [
-        'first name' => ['Jason', 'Alice', 'Dave'],
-        'last name'  => ['Duval', 'Caminos']
-    ];
-    $writer->addRowsFromColumns($header_rows);
+    $writer->writeRows([
+        [1, 'Alice', 'alice@example.com', 30],
+        [2, 'Bob', 'bob@example.com', 25],
+        [3, 'Charlie', 'charlie@example.com', 35],
+    ]);
+
+    // $header_rows = [
+    //     'first name' => ['Jason', 'Alice', 'Dave'],
+    //     'last name'  => ['Duval', 'Caminos']
+    // ];
+    // $writer->addRowsFromColumns($header_rows);
 
     $csv = $writer->close();
     echo $csv;
